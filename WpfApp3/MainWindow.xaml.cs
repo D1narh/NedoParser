@@ -1,12 +1,19 @@
 ﻿
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
+using AngleSharp.Text;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
+using System.Security.Policy;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -19,6 +26,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using WpfApp3.Class;
 
 namespace WpfApp3
 {
@@ -36,27 +44,28 @@ namespace WpfApp3
 
             var title2 = document.DocumentNode.SelectNodes("//*[@id=\"hidden-by-loader\"]").First().InnerText;
 
-            var title3 = document.DocumentNode.SelectNodes("//*[@itemprop=\"image\"]");
+            //HtmlNodeCollection span = document.DocumentNode.SelectNodes("//span[@class=\"image\"]");
 
 
-            HtmlNodeCollection span = document.DocumentNode.SelectNodes("//span[@class=\"image\"]");
+            //Ссылка на сайт
+            var urls = new[] {
+                "https://101hotels.com/main/cities/moskva?viewType=tiles&page=2"
+            };
 
-            foreach(var item in span)
+
+            DownloadFromSite DFS = new DownloadFromSite();
+            var NewTask = Task.Factory.StartNew(() => 
             {
+                Parallel.ForEach(urls, DFS.DownloadFiles);
+            });
+            ChetkayaStrika(title2);
+        }
 
-                text2.Text += " " + item.InnerHtml.Replace("  ", " ");
-            }
-
-
-            //var title = document.DocumentNode.SelectNodes("//*[@id=\"hidden-by-loader\"]/li/article/div/div/div/div/div[3]/span/img").First();//проблема с изображением тут
-
+        public void ChetkayaStrika(string title2)
+        {
             var texter = title2.Split("\n".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)
-                               .Where(str => !string.IsNullOrWhiteSpace(str))
-                               .Aggregate("", (rez, str) => rez + str).Trim();
-
-            //var texter = title2.ToString();
-
-            //title2.ToList().ForEach(x => { texter = x.InnerHtml; });
+                            .Where(str => !string.IsNullOrWhiteSpace(str))
+                            .Aggregate("", (rez, str) => rez + str).Trim();
 
             string stra = texter;
 
@@ -65,9 +74,6 @@ namespace WpfApp3
                 stra = stra.Replace("  ", " ");
             }
             text.Text = stra.Trim();
-
-            //text2.Text = title3;
-
         }
     }
 }
